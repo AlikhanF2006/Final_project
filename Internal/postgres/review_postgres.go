@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"final_project/model"
+	"github.com/AlikhanF2006/Final_project/model"
 )
 
 type ReviewRepository struct {

@@ -1,4 +1,4 @@
-module final_project
+module github.com/AlikhanF2006/Final_project
 
 go 1.25.5
 

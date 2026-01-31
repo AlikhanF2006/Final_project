@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"final_project/internal/postgres"
-	"final_project/model"
+	"github.com/AlikhanF2006/Final_project/internal/postgres"
+	"github.com/AlikhanF2006/Final_project/model"
 )
 
 var (

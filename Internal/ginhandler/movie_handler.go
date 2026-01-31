@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"final_project/internal/service"
-	"final_project/model"
+	"github.com/AlikhanF2006/Final_project/internal/service"
+	"github.com/AlikhanF2006/Final_project/model"
 )
 
 type MovieHandler struct {

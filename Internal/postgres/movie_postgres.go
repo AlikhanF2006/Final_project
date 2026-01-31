@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"final_project/model"
+	"github.com/AlikhanF2006/Final_project/model"
 )
 
 var (

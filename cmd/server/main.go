@@ -5,9 +5,9 @@ import (
 
 	ginframework "github.com/gin-gonic/gin"
 
-	"final_project/internal/ginhandler"
-	"final_project/internal/postgres"
-	"final_project/internal/service"
+	"github.com/AlikhanF2006/Final_project/internal/ginhandler"
+	"github.com/AlikhanF2006/Final_project/internal/postgres"
+	"github.com/AlikhanF2006/Final_project/internal/service"
 )
 
 func main() {
