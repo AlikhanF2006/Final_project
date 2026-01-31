@@ -1,0 +1,4 @@
+/configs/config.yaml
+.idea
+/pkg/
+/pkg/db/poastgress.go

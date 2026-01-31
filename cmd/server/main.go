@@ -5,12 +5,19 @@ import (
 
 	ginframework "github.com/gin-gonic/gin"
 
-	"github.com/AlikhanF2006/Final_project/internal/ginhandler"
-	"github.com/AlikhanF2006/Final_project/internal/postgres"
-	"github.com/AlikhanF2006/Final_project/internal/service"
+	"github.com/AlikhanF2006/Final_project/configs"
+	"github.com/AlikhanF2006/Final_project/pkg/db"
+
+	"github.com/AlikhanF2006/Final_project/ginhandler"
+	"github.com/AlikhanF2006/Final_project/postgres"
+	"github.com/AlikhanF2006/Final_project/service"
 )
 
 func main() {
+	configs.LoadConfig()
+	db.Connect()
+	defer db.Close()
+
 	ginframework.SetMode(ginframework.ReleaseMode)
 
 	movieRepo := postgres.NewMovieRepository()
