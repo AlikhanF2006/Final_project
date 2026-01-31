@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	ginframework "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 
 	"github.com/AlikhanF2006/Final_project/configs"
 	"github.com/AlikhanF2006/Final_project/pkg/db"
 
-	"github.com/AlikhanF2006/Final_project/ginhandler"
-	"github.com/AlikhanF2006/Final_project/postgres"
-	"github.com/AlikhanF2006/Final_project/service"
+	"github.com/AlikhanF2006/Final_project/internal/ginhandler"
+	"github.com/AlikhanF2006/Final_project/internal/postgres"
+	"github.com/AlikhanF2006/Final_project/internal/service"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	db.Connect()
 	defer db.Close()
 
-	ginframework.SetMode(ginframework.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 
 	movieRepo := postgres.NewMovieRepository()
 	reviewRepo := postgres.NewReviewRepository()
@@ -29,7 +29,7 @@ func main() {
 	movieH := ginhandler.NewMovieHandler(movieSvc)
 	reviewH := ginhandler.NewReviewHandler(reviewSvc)
 
-	r := ginframework.Default()
+	r := gin.Default()
 
 	r.POST("/movies", movieH.CreateMovie)
 	r.GET("/movies", movieH.GetMovies)
@@ -39,5 +39,5 @@ func main() {
 	r.GET("/movies/:id/reviews", reviewH.GetReviews)
 
 	log.Println("server running on http://localhost:8080")
-	r.Run(":8080")
+	_ = r.Run(":8080")
 }
