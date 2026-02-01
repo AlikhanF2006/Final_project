@@ -38,6 +38,9 @@ func main() {
 	r.POST("/movies/:id/reviews", reviewH.AddReview)
 	r.GET("/movies/:id/reviews", reviewH.GetReviews)
 
+	r.PUT("/movies/:id", movieH.UpdateMovie)
+	r.DELETE("/movies/:id", movieH.DeleteMovie)
+
 	log.Println("server running on http://localhost:8080")
 	_ = r.Run(":8080")
 }
