@@ -1,47 +1,64 @@
 package postgres
 
 import (
-	"sync"
-	"time"
+	"context"
 
 	"github.com/AlikhanF2006/Final_project/model"
+	"github.com/AlikhanF2006/Final_project/pkg/db"
 )
 
-type ReviewRepository struct {
-	mu      sync.RWMutex
-	nextID  int
-	reviews []model.Review
-}
+type ReviewRepository struct{}
 
 func NewReviewRepository() *ReviewRepository {
-	return &ReviewRepository{
-		nextID:  1,
-		reviews: make([]model.Review, 0),
+	return &ReviewRepository{}
+}
+
+func (r *ReviewRepository) Add(movieID int, rev model.Review) (model.Review, error) {
+	query := `
+        INSERT INTO reviews (movie_id, user_id, score)
+        VALUES ($1, $2, $3)
+        RETURNING id, created_at
+    `
+
+	err := db.DB.QueryRow(
+		context.Background(),
+		query,
+		movieID,
+		rev.UserID,
+		rev.Score,
+	).Scan(&rev.ID, &rev.CreatedAt)
+
+	rev.MovieID = movieID
+	return rev, err
+}
+
+func (r *ReviewRepository) ListByMovieID(movieID int) ([]model.Review, error) {
+	query := `
+        SELECT id, movie_id, user_id, score, created_at
+        FROM reviews
+        WHERE movie_id = $1
+    `
+
+	rows, err := db.DB.Query(context.Background(), query, movieID)
+	if err != nil {
+		return nil, err
 	}
-}
+	defer rows.Close()
 
-func (r *ReviewRepository) Add(movieID int, review model.Review) model.Review {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	review.ID = r.nextID
-	r.nextID++
-	review.MovieID = movieID
-	review.CreatedAt = time.Now()
-
-	r.reviews = append(r.reviews, review)
-	return review
-}
-
-func (r *ReviewRepository) ListByMovieID(movieID int) []model.Review {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	out := make([]model.Review, 0)
-	for _, rev := range r.reviews {
-		if rev.MovieID == movieID {
-			out = append(out, rev)
+	revs := make([]model.Review, 0)
+	for rows.Next() {
+		var r model.Review
+		if err := rows.Scan(
+			&r.ID,
+			&r.MovieID,
+			&r.UserID,
+			&r.Score,
+			&r.CreatedAt,
+		); err != nil {
+			return nil, err
 		}
+		revs = append(revs, r)
 	}
-	return out
+
+	return revs, nil
 }
