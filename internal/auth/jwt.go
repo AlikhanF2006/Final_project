@@ -21,7 +21,19 @@ func GenerateToken(userID int) (string, error) {
 	return t.SignedString([]byte(secret))
 }
 
-func ParseToken(tokenStr string) (int, error) {
+func GenerateTokenWithRole(userID int, role string) (string, error) {
+	secret := configs.AppConfig.Auth.JWTSecret
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"role":    role,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"iat":     time.Now().Unix(),
+	}
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return t.SignedString([]byte(secret))
+}
+
+func ParseToken(tokenStr string) (int, string, error) {
 	secret := configs.AppConfig.Auth.JWTSecret
 	tkn, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -30,15 +42,16 @@ func ParseToken(tokenStr string) (int, error) {
 		return []byte(secret), nil
 	})
 	if err != nil || !tkn.Valid {
-		return 0, ErrInvalidToken
+		return 0, "", ErrInvalidToken
 	}
 	claims, ok := tkn.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, ErrInvalidToken
+		return 0, "", ErrInvalidToken
 	}
 	uidFloat, ok := claims["user_id"].(float64)
 	if !ok {
-		return 0, ErrInvalidToken
+		return 0, "", ErrInvalidToken
 	}
-	return int(uidFloat), nil
+	role, _ := claims["role"].(string)
+	return int(uidFloat), role, nil
 }

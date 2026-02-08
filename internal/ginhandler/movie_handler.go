@@ -1,3 +1,4 @@
+// internal/ginhandler/moviehandler.go
 package ginhandler
 
 import (

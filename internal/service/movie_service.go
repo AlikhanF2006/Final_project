@@ -32,11 +32,7 @@ func (s *MovieService) CreateMovie(m model.Movie) (model.Movie, error) {
 	if m.Title == "" || m.Year <= 0 {
 		return model.Movie{}, ErrBadMovieData
 	}
-	created, err := s.movieRepo.Create(m)
-	if err != nil {
-		return model.Movie{}, err
-	}
-	return created, nil
+	return s.movieRepo.Create(m)
 }
 
 func (s *MovieService) ListMovies() []model.Movie {
@@ -68,6 +64,25 @@ func (s *MovieService) UpdateMovie(id int, upd model.Movie) (model.Movie, error)
 
 func (s *MovieService) DeleteMovie(id int) error {
 	return s.movieRepo.Delete(id)
+}
+
+func (s *MovieService) Search(title string, year int) []model.Movie {
+	all := s.movieRepo.GetAll()
+	result := make([]model.Movie, 0)
+
+	title = strings.ToLower(strings.TrimSpace(title))
+
+	for _, m := range all {
+		if title != "" && !strings.Contains(strings.ToLower(m.Title), title) {
+			continue
+		}
+		if year > 0 && m.Year != year {
+			continue
+		}
+		result = append(result, m)
+	}
+
+	return result
 }
 
 func (s *MovieService) GetPopularFromTMDB() ([]model.Movie, error) {

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Movie Platform</title>
+</head>
+<body>
+    <h1>Movies</h1>
+
+    {{ if .Movies }}
+        {{ range .Movies }}
+            <div>
+                <h2>{{ .Title }} ({{ .Year }})</h2>
+                <p>{{ .Description }}</p>
+                <strong>Rating: {{ printf "%.1f" .Rating }}</strong>
+            </div>
+        {{ end }}
+    {{ else }}
+        <p>No movies yet</p>
+    {{ end }}
+</body>
+</html>
