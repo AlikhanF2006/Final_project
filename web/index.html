@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MovieHub</title>
+    <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">
+        <div class="logo">🎬</div>
+        <div>
+            <div class="brand-title">MovieHub</div>
+            <div class="brand-sub">Movies • Reviews • Ratings</div>
+        </div>
+    </div>
+
+    <div class="search">
+        <input id="qTitle" class="input" type="text" placeholder="Search by title..." />
+        <input id="qYear" class="input" type="number" min="1800" max="2100" placeholder="Year" />
+        <button id="btnSearch" class="btn">Search</button>
+        <button id="btnClear" class="btn btn-ghost">Clear</button>
+    </div>
+
+    <div class="actions">
+        <div id="authArea" class="auth">
+            <button id="btnLoginOpen" class="btn">Log in</button>
+            <button id="btnRegisterOpen" class="btn btn-ghost">Register</button>
+        </div>
+
+        <div id="userArea" class="user hidden">
+            <button id="btnProfile" class="btn btn-ghost">Profile</button>
+            <span id="userBadge" class="badge"></span>
+            <button id="btnLogout" class="btn">Logout</button>
+        </div>
+    </div>
+</header>
+
+<div class="shell">
+    <aside class="sidebar">
+        <div class="sidebar-head">
+            <h2>Movies</h2>
+            <div class="muted" id="movieCount">—</div>
+        </div>
+        <div id="movieList" class="list"></div>
+    </aside>
+
+    <main class="main">
+        <section id="emptyState" class="card empty">
+            <h2>Pick a movie</h2>
+            <p class="muted">Select a movie from the left to view details and reviews.</p>
+        </section>
+
+        <section id="movieView" class="hidden">
+            <div class="card">
+                <div class="movie-head">
+                    <div>
+                        <h1 id="mvTitle">—</h1>
+                        <div class="meta">
+                            <span class="pill" id="mvYear">—</span>
+                            <span class="pill pill-soft" id="mvRating">★ —</span>
+                            <span class="pill pill-soft" id="mvTMDB">TMDB: —</span>
+                        </div>
+                    </div>
+
+                    <div class="movie-actions" id="movieAdminActions"></div>
+                </div>
+
+                <p id="mvDesc" class="desc">—</p>
+
+                <!-- Trailer Player -->
+                <div id="trailerBox" class="trailer hidden">
+                    <div class="trailer-head">
+                        <div class="muted">Trailer</div>
+                        <a id="trailerLink" class="btn btn-ghost" target="_blank" rel="noreferrer">Open on YouTube</a>
+                    </div>
+
+                    <div class="video">
+                        <iframe
+                                id="trailerFrame"
+                                title="Trailer"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+
+            <section class="grid">
+                <div class="card">
+                    <div class="card-head">
+                        <h2>Reviews</h2>
+                        <div class="muted" id="reviewCount">—</div>
+                    </div>
+
+                    <div id="reviewList" class="reviews"></div>
+                </div>
+
+                <div class="card" id="reviewComposerCard">
+                    <div class="card-head">
+                        <h2>Your review</h2>
+                        <div class="muted" id="reviewHint">Log in to post a review.</div>
+                    </div>
+
+                    <div id="reviewComposer" class="hidden">
+                        <label class="label">Score (1–10)</label>
+                        <input id="revScore" class="input" type="number" min="1" max="10" value="8" />
+
+                        <label class="label">Text</label>
+                        <textarea id="revText" class="textarea" rows="5" placeholder="Write something..."></textarea>
+
+                        <div class="row">
+                            <button id="btnAddReview" class="btn">Submit Review</button>
+                            <button id="btnUpdateScore" class="btn btn-ghost">Update Score Only</button>
+                            <button id="btnDeleteMyReview" class="btn btn-danger">Delete My Review</button>
+                        </div>
+
+                        <div class="muted small">
+                            Note: your backend update endpoint changes score only; text cannot be updated.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+
+<!-- MODAL: LOGIN -->
+<div id="loginModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h3>Log in</h3>
+            <button class="icon-btn" data-close="loginModal">✕</button>
+        </div>
+        <div class="modal-body">
+            <label class="label">Email</label>
+            <input id="loginEmail" class="input" type="email" placeholder="you@example.com" />
+            <label class="label">Password</label>
+            <input id="loginPass" class="input" type="password" placeholder="••••••••" />
+            <div class="row">
+                <button id="btnLogin" class="btn">Log in</button>
+                <button class="btn btn-ghost" data-close="loginModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: REGISTER -->
+<div id="registerModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h3>Register</h3>
+            <button class="icon-btn" data-close="registerModal">✕</button>
+        </div>
+        <div class="modal-body">
+            <label class="label">Username</label>
+            <input id="regUsername" class="input" type="text" placeholder="yourname" />
+            <label class="label">Email</label>
+            <input id="regEmail" class="input" type="email" placeholder="you@example.com" />
+            <label class="label">Password</label>
+            <input id="regPass" class="input" type="password" placeholder="min 6 chars" />
+            <div class="row">
+                <button id="btnRegister" class="btn">Create account</button>
+                <button class="btn btn-ghost" data-close="registerModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: PROFILE -->
+<div id="profileModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h3>Profile</h3>
+            <button class="icon-btn" data-close="profileModal">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="profile-grid">
+                <div>
+                    <div class="muted small">User</div>
+                    <div id="meSummary" class="mono">—</div>
+                </div>
+                <div>
+                    <div class="muted small">Role</div>
+                    <div id="meRole" class="mono">—</div>
+                </div>
+            </div>
+
+            <hr class="hr" />
+
+            <h4>Update profile</h4>
+            <label class="label">Username</label>
+            <input id="meUsername" class="input" type="text" />
+            <label class="label">Email</label>
+            <input id="meEmail" class="input" type="email" />
+            <div class="row">
+                <button id="btnUpdateProfile" class="btn btn-secondary">Save</button>
+            </div>
+
+            <hr class="hr" />
+
+            <h4>Change password</h4>
+            <label class="label">New password</label>
+            <input id="mePass" class="input" type="password" placeholder="min 6 chars" />
+            <div class="row">
+                <button id="btnChangePassword" class="btn btn-secondary">Change</button>
+                <button id="btnDeleteAccount" class="btn btn-danger">Delete account</button>
+            </div>
+
+            <div class="muted small">
+                Account deletion is permanent.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
