@@ -1,4 +1,3 @@
-// internal/ginhandler/moviehandler.go
 package ginhandler
 
 import (
@@ -95,9 +94,47 @@ func (h *MovieHandler) DeleteMovie(c *gin.Context) {
 func (h *MovieHandler) GetPopularFromTMDB(c *gin.Context) {
 	movies, err := h.movieSvc.GetPopularFromTMDB()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, movies)
+}
+
+func (h *MovieHandler) GetMovieFromTMDB(c *gin.Context) {
+	tmdbID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tmdb id"})
+		return
+	}
+
+	result, err := h.movieSvc.GetMovieWithTrailer(tmdbID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "tmdb error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (h *MovieHandler) GetMovieWithTrailer(c *gin.Context) {
+	h.GetMovieFromTMDB(c)
+}
+
+func (h *MovieHandler) Search(c *gin.Context) {
+	title := c.Query("title")
+
+	yearStr := c.Query("year")
+	year := 0
+	if yearStr != "" {
+		if y, err := strconv.Atoi(yearStr); err == nil {
+			year = y
+		}
+	}
+
+	movies, err := h.movieSvc.SearchMovies(title, year)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "search failed"})
 		return
 	}
 

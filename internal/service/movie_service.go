@@ -114,7 +114,7 @@ func (s *MovieService) GetPopularFromTMDB() ([]model.Movie, error) {
 			Title:       m.Title,
 			Description: m.Overview,
 			Year:        year,
-			Rating:      m.Rating,
+			Rating:      0,
 		})
 		if err == nil {
 			result = append(result, created)
@@ -122,4 +122,31 @@ func (s *MovieService) GetPopularFromTMDB() ([]model.Movie, error) {
 	}
 
 	return result, nil
+}
+
+func (s *MovieService) GetMovieWithTrailer(tmdbID int) (map[string]any, error) {
+	movie, err := s.tmdbClient.GetMovie(tmdbID)
+	if err != nil {
+		return nil, err
+	}
+
+	trailerKey, _ := s.tmdbClient.GetTrailerKey(tmdbID)
+
+	result := map[string]any{
+		"id":           movie.ID,
+		"title":        movie.Title,
+		"description":  movie.Overview,
+		"release_date": movie.ReleaseDate,
+		"trailer_url":  "",
+	}
+
+	if trailerKey != "" {
+		result["trailer_url"] = "https://www.youtube.com/watch?v=" + trailerKey
+	}
+
+	return result, nil
+}
+
+func (s *MovieService) SearchMovies(title string, year int) ([]model.Movie, error) {
+	return s.movieRepo.Search(title, year)
 }

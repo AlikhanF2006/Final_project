@@ -1,23 +1,25 @@
-package tmdb
+package service
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/AlikhanF2006/Final_project/internal/postgres/dto"
 )
 
 var ErrTMDBRequestFailed = errors.New("tmdb request failed")
 
-type Client struct {
+type TMDBClient struct {
 	token string
 }
 
-func NewClient(token string) *Client {
-	return &Client{token: token}
+func NewTMDBClient(token string) *TMDBClient {
+	return &TMDBClient{token: token}
 }
 
-func (c *Client) doRequest(url string, target any) error {
+func (c *TMDBClient) doRequest(url string, target any) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -39,22 +41,8 @@ func (c *Client) doRequest(url string, target any) error {
 	return json.NewDecoder(resp.Body).Decode(target)
 }
 
-func (c *Client) GetPopularMovies() ([]TMDBMovieResponse, error) {
-	var result struct {
-		Results []TMDBMovieResponse `json:"results"`
-	}
-
-	url := "https://api.themoviedb.org/3/movie/popular?language=en-US&page=1"
-
-	if err := c.doRequest(url, &result); err != nil {
-		return nil, err
-	}
-
-	return result.Results, nil
-}
-
-func (c *Client) GetMovie(tmdbID int) (TMDBMovieResponse, error) {
-	var movie TMDBMovieResponse
+func (c *TMDBClient) GetMovie(tmdbID int) (dto.TMDBMovieResponse, error) {
+	var movie dto.TMDBMovieResponse
 
 	url := fmt.Sprintf(
 		"https://api.themoviedb.org/3/movie/%d?language=en-US",
@@ -62,14 +50,14 @@ func (c *Client) GetMovie(tmdbID int) (TMDBMovieResponse, error) {
 	)
 
 	if err := c.doRequest(url, &movie); err != nil {
-		return TMDBMovieResponse{}, err
+		return dto.TMDBMovieResponse{}, err
 	}
 
 	return movie, nil
 }
 
-func (c *Client) GetTrailerKey(tmdbID int) (string, error) {
-	var videos TMDBVideosResponse
+func (c *TMDBClient) GetTrailerKey(tmdbID int) (string, error) {
+	var videos dto.TMDBVideosResponse
 
 	url := fmt.Sprintf(
 		"https://api.themoviedb.org/3/movie/%d/videos",

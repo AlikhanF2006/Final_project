@@ -1,4 +1,4 @@
-// main.go
+// cmd/server/main.go
 package main
 
 import (
@@ -28,7 +28,9 @@ func main() {
 	reviewRepo := postgres.NewReviewRepository()
 	userRepo := postgres.NewUserRepository()
 
-	tmdbClient := tmdb.NewClient(configs.AppConfig.TMDB.ApiKey)
+	tmdbClient := tmdb.NewClient(
+		configs.AppConfig.TMDB.ApiKey,
+	)
 
 	movieSvc := service.NewMovieService(movieRepo, tmdbClient)
 	reviewSvc := service.NewReviewService(reviewRepo, movieRepo)
@@ -56,9 +58,11 @@ func main() {
 		public := api.Group("")
 		{
 			public.GET("/movies", movieH.GetMovies)
+			public.GET("/movies/search", movieH.Search)
 			public.GET("/movies/:id", movieH.GetMovieByID)
 			public.GET("/movies/tmdb/popular", movieH.GetPopularFromTMDB)
 			public.GET("/movies/:id/reviews", reviewH.GetReviews)
+			public.GET("/tmdb/movies/:id", movieH.GetMovieWithTrailer)
 		}
 
 		protected := api.Group("")
@@ -83,10 +87,12 @@ func main() {
 		}
 	}
 
-	r.GET("/", func(c *gin.Context) {
-		movies := movieSvc.ListMovies()
-		c.HTML(200, "index.tmpl", gin.H{"Movies": movies})
-	})
+	/*
+		r.GET("/", func(c *gin.Context) {
+			movies := movieSvc.ListMovies()
+			c.HTML(200, "index.tmpl", gin.H{"Movies": movies})
+		})
+	*/
 
 	r.NoRoute(func(c *gin.Context) {
 		c.File("./web/index.html")

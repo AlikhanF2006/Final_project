@@ -173,3 +173,41 @@ func (r *MovieRepository) Delete(id int) error {
 
 	return nil
 }
+
+func (r *MovieRepository) Search(title string, year int) ([]model.Movie, error) {
+	query := `
+		SELECT id, tmdb_id, title, year, description, rating
+		FROM movies
+		WHERE ($1 = '' OR LOWER(title) LIKE '%' || LOWER($1) || '%')
+		  AND ($2 = 0 OR year = $2)
+	`
+
+	rows, err := db.DB.Query(
+		context.Background(),
+		query,
+		title,
+		year,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []model.Movie
+	for rows.Next() {
+		var m model.Movie
+		if err := rows.Scan(
+			&m.ID,
+			&m.TMDBID,
+			&m.Title,
+			&m.Year,
+			&m.Description,
+			&m.Rating,
+		); err != nil {
+			return nil, err
+		}
+		movies = append(movies, m)
+	}
+
+	return movies, nil
+}

@@ -1,30 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Movie Reviews</title>
-    <link rel="stylesheet" href="/static/style.css" />
+    <meta charset="utf-8"/>
+    <title>Movie Platform</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel (ОБЯЗАТЕЛЬНО) -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
 <header>
-    <h1>Movie Reviews</h1>
+    <h1>Movie Platform</h1>
 </header>
 
-<main>
-    <section class="card">
-        <h2>Add Movie</h2>
-        <input id="title" placeholder="Title" />
-        <input id="year" type="number" placeholder="Year" />
-        <textarea id="desc" placeholder="Description"></textarea>
-        <button onclick="addMovie()">Add Movie</button>
-    </section>
+<div id="root"></div>
 
-    <section class="card">
-        <h2>Movies</h2>
-        <div id="movies"></div>
-    </section>
-</main>
+<!-- ВАЖНО: type="text/babel" -->
+<script type="text/babel" src="/static/app.js"></script>
 
-<script src="/static/app.js"></script>
 </body>
 </html>
