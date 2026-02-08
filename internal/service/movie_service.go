@@ -2,20 +2,29 @@ package service
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/AlikhanF2006/Final_project/internal/postgres"
+	"github.com/AlikhanF2006/Final_project/internal/tmdb"
 	"github.com/AlikhanF2006/Final_project/model"
 )
 
 var ErrBadMovieData = errors.New("invalid movie data")
 
 type MovieService struct {
-	movieRepo *postgres.MovieRepository
+	movieRepo  *postgres.MovieRepository
+	tmdbClient *tmdb.Client
 }
 
-func NewMovieService(movieRepo *postgres.MovieRepository) *MovieService {
-	return &MovieService{movieRepo: movieRepo}
+func NewMovieService(
+	movieRepo *postgres.MovieRepository,
+	tmdbClient *tmdb.Client,
+) *MovieService {
+	return &MovieService{
+		movieRepo:  movieRepo,
+		tmdbClient: tmdbClient,
+	}
 }
 
 func (s *MovieService) CreateMovie(m model.Movie) (model.Movie, error) {
@@ -23,7 +32,11 @@ func (s *MovieService) CreateMovie(m model.Movie) (model.Movie, error) {
 	if m.Title == "" || m.Year <= 0 {
 		return model.Movie{}, ErrBadMovieData
 	}
-	return s.movieRepo.Create(m), nil
+	created, err := s.movieRepo.Create(m)
+	if err != nil {
+		return model.Movie{}, err
+	}
+	return created, nil
 }
 
 func (s *MovieService) ListMovies() []model.Movie {
@@ -55,4 +68,43 @@ func (s *MovieService) UpdateMovie(id int, upd model.Movie) (model.Movie, error)
 
 func (s *MovieService) DeleteMovie(id int) error {
 	return s.movieRepo.Delete(id)
+}
+
+func (s *MovieService) GetPopularFromTMDB() ([]model.Movie, error) {
+	moviesDTO, err := s.tmdbClient.GetPopularMovies()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []model.Movie
+
+	for _, m := range moviesDTO {
+		year := 0
+		if len(m.ReleaseDate) >= 4 {
+			if y, err := strconv.Atoi(m.ReleaseDate[:4]); err == nil {
+				year = y
+			}
+		}
+
+		if s.movieRepo.ExistsByTMDBID(m.ID) {
+			existing, err := s.movieRepo.GetByTMDBID(m.ID)
+			if err == nil {
+				result = append(result, existing)
+			}
+			continue
+		}
+
+		created, err := s.movieRepo.Create(model.Movie{
+			TMDBID:      m.ID,
+			Title:       m.Title,
+			Description: m.Overview,
+			Year:        year,
+			Rating:      m.Rating,
+		})
+		if err == nil {
+			result = append(result, created)
+		}
+	}
+
+	return result, nil
 }

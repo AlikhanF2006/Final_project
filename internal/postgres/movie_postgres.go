@@ -18,28 +18,40 @@ func NewMovieRepository() *MovieRepository {
 	return &MovieRepository{}
 }
 
-func (r *MovieRepository) Create(m model.Movie) model.Movie {
+func (r *MovieRepository) SetRating(movieID int, rating float64) error {
+	_, err := db.DB.Exec(
+		context.Background(),
+		`UPDATE movies SET rating = $1 WHERE id = $2`,
+		rating,
+		movieID,
+	)
+	return err
+}
+
+func (r *MovieRepository) Create(m model.Movie) (model.Movie, error) {
 	query := `
-		INSERT INTO movies (title, year, description, rating)
-		VALUES ($1, $2, $3, 0)
-		RETURNING id, rating
+		INSERT INTO movies (tmdb_id, title, year, description, rating)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
 	`
 
-	_ = db.DB.QueryRow(
+	err := db.DB.QueryRow(
 		context.Background(),
 		query,
+		m.TMDBID,
 		m.Title,
 		m.Year,
 		m.Description,
-	).Scan(&m.ID, &m.Rating)
+		m.Rating,
+	).Scan(&m.ID)
 
-	return m
+	return m, err
 }
 
 func (r *MovieRepository) GetAll() []model.Movie {
 	rows, err := db.DB.Query(
 		context.Background(),
-		`SELECT id, title, year, description, rating FROM movies`,
+		`SELECT id, tmdb_id, title, year, description, rating FROM movies`,
 	)
 	if err != nil {
 		return []model.Movie{}
@@ -52,6 +64,7 @@ func (r *MovieRepository) GetAll() []model.Movie {
 		var m model.Movie
 		if err := rows.Scan(
 			&m.ID,
+			&m.TMDBID,
 			&m.Title,
 			&m.Year,
 			&m.Description,
@@ -69,10 +82,11 @@ func (r *MovieRepository) GetByID(id int) (model.Movie, error) {
 
 	err := db.DB.QueryRow(
 		context.Background(),
-		`SELECT id, title, year, description, rating FROM movies WHERE id=$1`,
+		`SELECT id, tmdb_id, title, year, description, rating FROM movies WHERE id=$1`,
 		id,
 	).Scan(
 		&m.ID,
+		&m.TMDBID,
 		&m.Title,
 		&m.Year,
 		&m.Description,
@@ -86,32 +100,48 @@ func (r *MovieRepository) GetByID(id int) (model.Movie, error) {
 	return m, nil
 }
 
-func (r *MovieRepository) SetRating(movieID int, rating float64) error {
-	cmd, err := db.DB.Exec(
+func (r *MovieRepository) GetByTMDBID(tmdbID int) (model.Movie, error) {
+	var m model.Movie
+
+	err := db.DB.QueryRow(
 		context.Background(),
-		`UPDATE movies SET rating=$1 WHERE id=$2`,
-		rating,
-		movieID,
+		`SELECT id, tmdb_id, title, year, description, rating FROM movies WHERE tmdb_id=$1`,
+		tmdbID,
+	).Scan(
+		&m.ID,
+		&m.TMDBID,
+		&m.Title,
+		&m.Year,
+		&m.Description,
+		&m.Rating,
 	)
 
 	if err != nil {
-		return err
+		return model.Movie{}, ErrMovieNotFound
 	}
 
-	if cmd.RowsAffected() == 0 {
-		return ErrMovieNotFound
-	}
+	return m, nil
+}
 
-	return nil
+func (r *MovieRepository) ExistsByTMDBID(tmdbID int) bool {
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		`SELECT id FROM movies WHERE tmdb_id=$1`,
+		tmdbID,
+	).Scan(&id)
+
+	return err == nil
 }
 
 func (r *MovieRepository) Update(m model.Movie) (model.Movie, error) {
 	cmd, err := db.DB.Exec(
 		context.Background(),
-		`UPDATE movies SET title=$1, year=$2, description=$3 WHERE id=$4`,
+		`UPDATE movies SET title=$1, year=$2, description=$3, rating=$4 WHERE id=$5`,
 		m.Title,
 		m.Year,
 		m.Description,
+		m.Rating,
 		m.ID,
 	)
 
