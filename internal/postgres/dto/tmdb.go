@@ -1,4 +1,4 @@
-package tmdb
+package dto
 
 type TMDBMovieResponse struct {
 	ID          int    `json:"id"`
