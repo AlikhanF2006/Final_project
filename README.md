@@ -6,12 +6,12 @@ This project is a learning / demo movie platform: it stores movie metadata and r
 Note: the project does not host full movies — only metadata and trailers (YouTube). Do not attempt to stream copyrighted full-length movies.
 
 
-*Idea / Overview*
+  *Idea / Overview*
 
 The Movie Platform is a lightweight web application for exploring movies, reading/writing reviews and watching official trailers. It demonstrates a clean Go backend (Gin + layered services + Postgres) integrated with an external provider (TMDB), plus a small client UI that can be used for demos or a course project.
 
 
-*Goals:*
+  *Goals:*
 
 Simple, well-structured Go backend (handlers → services → repository).
 
@@ -21,8 +21,8 @@ Integration with TheMovieDB (TMDB) for additional metadata and trailer URLs.
 
 Minimal frontend that shows movies, search, login/register and a movie detail page with a trailer iframe.
 
-
-*Functionality*
+ 
+  *Functionality*
 
 Public / unauthenticated
 
@@ -39,7 +39,7 @@ Get TMDB movie metadata + trailer (GET /api/tmdb/movies/:id)
 Get popular movies from TMDB and (optionally) import to local DB (GET /api/movies/tmdb/popular)
 
 
-*Authentication*
+  *Authentication*
 
 Register (POST /api/auth/register)
 
@@ -56,7 +56,7 @@ Admin endpoints to delete any review / user (protected by role)
 Profile endpoints (GET /api/me, PUT /api/me, PUT /api/me/password, DELETE /api/me)
 
 
-*Frontend*
+  *Frontend*
 
 Homepage: grid of movies with search
 
@@ -65,7 +65,7 @@ Movie detail page: metadata, server JSON, TMDB JSON and YouTube trailer iframe
 Simple login/register/profile flows (uses localStorage token)
 
 
-*Architecture*
+  *Architecture*
 
 Project layout (high-level):
 
@@ -83,7 +83,7 @@ model/                        # domain models (Movie, Review, User)
 web/                          # static frontend (index.html, movie.html, /static)
 ```
 
-*Layers:*
+  *Layers:*
 
 Handlers receive HTTP requests, validate and call services.
 
@@ -94,7 +94,7 @@ Repositories (postgres) talk to Postgres and expose simple DB methods.
 External clients (tmdb client) encapsulate calls to external APIs.
 
 
-*Security:*
+  *Security:*
 
 JWT for auth, middleware extracts user_id and role.
 
@@ -105,7 +105,7 @@ TMDB API requests use a TMDB v4 Bearer Read Access Token (not v3 API key) — se
 Config (example)
 
 
-*File: configs/config.yaml*
+  *File: configs/config.yaml*
 
 ```
 database:
@@ -127,9 +127,9 @@ tmdb.api_key — must be TMDB v4 Read Access Token (Bearer).
 auth.jwt_secret — secret used to sign JWT tokens.
 
 
-*Database schema (SQL)*
+  *Database schema (SQL)*
 
-Run these statements in your Postgres to create minimal tables (example):
+*Run these statements in your Postgres to create minimal tables (example):*
 
 ```
 CREATE TABLE movies (
@@ -165,7 +165,7 @@ If you use Supabase (as in sample config), make sure the DB user has appropriate
 API Reference (selected endpoints)
 
 
-*Some example requests and responses:*
+  *Some example requests and responses:*
 
 GET /api/movies
 Response: [{ id, tmdb_id, title, year, description, rating }, ...]
@@ -190,20 +190,20 @@ Body: { "email": "bob@example.com", "password": "secret" }
 Response: { "token": "<JWT>" }
 
 
-*Protected endpoints require header: Authorization: Bearer <JWT>*
+   *Protected endpoints require header: Authorization: Bearer <JWT>*
 
-*Run locally*
+   *Run locally*
 
-*Prerequisites*
+   *Prerequisites*
 
-*Go 1.20+ (or whichever your project uses)*
+   *Go 1.20+ (or whichever your project uses)*
 
-*Postgres (local or remote) and configs/config.yaml updated*
+   *Postgres (local or remote) and configs/config.yaml updated*
 
-*TMDB Read Access Token (v4)*
+   *TMDB Read Access Token (v4)*
 
 
-*Steps:*
+  *Steps:*
 
 1. Update configs/config.yaml with your Postgres URL, TMDB read token and jwt secret.
 
@@ -211,7 +211,7 @@ Response: { "token": "<JWT>" }
 
 
 
-*Start the server from project root:*
+  *Start the server from project root:*
 
 ```
 go run ./cmd/server
@@ -222,7 +222,7 @@ server running on http://localhost:8080
 ```
 
 
-*Open the frontend:*
+  *Open the frontend:*
 
 SPA: http://localhost:8080/ (if you use SPA index.html)
 
@@ -235,9 +235,9 @@ curl http://localhost:8080/api/tmdb/movies/550
 ```
 
 
-*Using Docker Compose (optional)*
+  *Using Docker Compose (optional)*
 
-*1. You can run Postgres locally with docker-compose. Example docker-compose.yml:*
+1. You can run Postgres locally with docker-compose. Example docker-compose.yml:
 
 ```
 version: "3.8"
@@ -254,10 +254,10 @@ services:
       - ./pgdata:/var/lib/postgresql/data
 ```
 
-*2. Then set configs/config.yaml database.url to postgresql://postgres:password@localhost:5432/moviesdb.*
+2. Then set configs/config.yaml database.url to postgresql://postgres:password@localhost:5432/moviesdb.
 
 
-*Frontend (web)*
+  *Frontend (web)*
 
 *Simple static files are stored in web/:*
 
@@ -270,7 +270,7 @@ web/static/app.js — SPA JavaScript (if used)
 web/static/style.css — CSS
 
 
-*If you use the SPA, ensure main.go's router serves web/index.html on unknown routes:*
+  *If you use the SPA, ensure main.go's router serves web/index.html on unknown routes:*
 
 ```
 r.NoRoute(func(c *gin.Context) {
@@ -280,7 +280,7 @@ r.Static("/static", "./web/static")
 ```
 
 
-*Notes & Caveats*
+  *Notes & Caveats*
 
 1. TMDB token: use TMDB v4 Read Access Token (Bearer). v3 API keys will return 401 when you attempt to use Authorization: Bearer ....
 
@@ -293,7 +293,7 @@ r.Static("/static", "./web/static")
 5. Worker: review service runs a background worker to recalculate movie rating after new reviews. Make sure StartRatingWorker() is called in main.
 
 
-*Testing*
+  *Testing*
 
 1. Use curl / Postman to test API endpoints.
 
@@ -305,7 +305,9 @@ r.Static("/static", "./web/static")
 *Creators*
 
 Safaryan Artyom
+
 Faizrakhman Alikhan
+
 Ayazbaev Daniyar
 
 
@@ -314,7 +316,7 @@ Ayazbaev Daniyar
 NO
 
 
-*Possible improvements and extensions:*
+  *Possible improvements and extensions:*
 
 Frontend: migrate to a modern SPA toolchain (Vite + React) for maintainability and nicer UX.
 
