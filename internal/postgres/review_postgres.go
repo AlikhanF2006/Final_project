@@ -15,10 +15,10 @@ func NewReviewRepository() *ReviewRepository {
 
 func (r *ReviewRepository) Add(movieID int, rev model.Review) (model.Review, error) {
 	query := `
-        INSERT INTO reviews (movie_id, user_id, score)
-        VALUES ($1, $2, $3)
-        RETURNING id, created_at
-    `
+		INSERT INTO reviews (movie_id, user_id, score)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at
+	`
 
 	err := db.DB.QueryRow(
 		context.Background(),
@@ -34,10 +34,10 @@ func (r *ReviewRepository) Add(movieID int, rev model.Review) (model.Review, err
 
 func (r *ReviewRepository) ListByMovieID(movieID int) ([]model.Review, error) {
 	query := `
-        SELECT id, movie_id, user_id, score, created_at
-        FROM reviews
-        WHERE movie_id = $1
-    `
+		SELECT id, movie_id, user_id, score, created_at
+		FROM reviews
+		WHERE movie_id = $1
+	`
 
 	rows, err := db.DB.Query(context.Background(), query, movieID)
 	if err != nil {

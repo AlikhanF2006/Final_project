@@ -15,6 +15,10 @@ type Config struct {
 	TMDB struct {
 		ApiKey string `yaml:"api_key"`
 	} `yaml:"tmdb"`
+
+	Auth struct {
+		JWTSecret string `yaml:"jwt_secret"`
+	} `yaml:"auth"`
 }
 
 var AppConfig Config
@@ -34,5 +38,8 @@ func LoadConfig() {
 	}
 	if AppConfig.TMDB.ApiKey == "" {
 		log.Fatal("tmdb.api_key is empty")
+	}
+	if AppConfig.Auth.JWTSecret == "" {
+		log.Fatal("auth.jwt_secret is empty")
 	}
 }

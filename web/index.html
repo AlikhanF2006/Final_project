@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Movie Reviews</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<header>
+    <h1>Movie Reviews</h1>
+</header>
+
+<main>
+    <section class="card">
+        <h2>Add Movie</h2>
+        <input id="title" placeholder="Title" />
+        <input id="year" type="number" placeholder="Year" />
+        <textarea id="desc" placeholder="Description"></textarea>
+        <button onclick="addMovie()">Add Movie</button>
+    </section>
+
+    <section class="card">
+        <h2>Movies</h2>
+        <div id="movies"></div>
+    </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

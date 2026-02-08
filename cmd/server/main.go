@@ -35,17 +35,26 @@ func main() {
 
 	r := gin.Default()
 
-	r.POST("/movies", movieH.CreateMovie)
-	r.GET("/movies", movieH.GetMovies)
-	r.GET("/movies/:id", movieH.GetMovieByID)
-	r.PUT("/movies/:id", movieH.UpdateMovie)
-	r.DELETE("/movies/:id", movieH.DeleteMovie)
+	api := r.Group("/api")
+	{
+		api.POST("/movies", movieH.CreateMovie)
+		api.GET("/movies", movieH.GetMovies)
+		api.GET("/movies/:id", movieH.GetMovieByID)
+		api.PUT("/movies/:id", movieH.UpdateMovie)
+		api.DELETE("/movies/:id", movieH.DeleteMovie)
 
-	r.POST("/movies/:id/reviews", reviewH.AddReview)
-	r.GET("/movies/:id/reviews", reviewH.GetReviews)
+		api.POST("/movies/:id/reviews", reviewH.AddReview)
+		api.GET("/movies/:id/reviews", reviewH.GetReviews)
 
-	r.GET("/movies/tmdb/popular", movieH.GetPopularFromTMDB)
+		api.GET("/movies/tmdb/popular", movieH.GetPopularFromTMDB)
+	}
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./web/index.html")
+	})
 
 	log.Println("server running on http://localhost:8080")
-	_ = r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }
