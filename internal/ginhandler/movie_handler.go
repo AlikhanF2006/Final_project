@@ -90,3 +90,15 @@ func (h *MovieHandler) DeleteMovie(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func (h *MovieHandler) GetPopularFromTMDB(c *gin.Context) {
+	movies, err := h.movieSvc.GetPopularFromTMDB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, movies)
+}
