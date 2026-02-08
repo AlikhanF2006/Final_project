@@ -82,8 +82,10 @@ internal/
 model/                        # domain models (Movie, Review, User)
 web/                          # static frontend (index.html, movie.html, /static)
 ```
-<br>
-  *Layers:*
+
+<br><br>
+
+  *Layers:*  
 
 Handlers receive HTTP requests, validate and call services.
 
@@ -94,7 +96,7 @@ Repositories (postgres) talk to Postgres and expose simple DB methods.
 External clients (tmdb client) encapsulate calls to external APIs.
 <br>
 
-  *Security:*
+  *Security:*  
 
 JWT for auth, middleware extracts user_id and role.
 
