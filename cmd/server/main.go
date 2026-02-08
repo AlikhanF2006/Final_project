@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/AlikhanF2006/Final_project/pkg/db"
 
 	"github.com/AlikhanF2006/Final_project/internal/ginhandler"
+	"github.com/AlikhanF2006/Final_project/internal/middleware"
 	"github.com/AlikhanF2006/Final_project/internal/postgres"
 	"github.com/AlikhanF2006/Final_project/internal/service"
 	"github.com/AlikhanF2006/Final_project/internal/tmdb"
@@ -24,30 +26,67 @@ func main() {
 
 	movieRepo := postgres.NewMovieRepository()
 	reviewRepo := postgres.NewReviewRepository()
+	userRepo := postgres.NewUserRepository()
 
 	tmdbClient := tmdb.NewClient(configs.AppConfig.TMDB.ApiKey)
 
 	movieSvc := service.NewMovieService(movieRepo, tmdbClient)
 	reviewSvc := service.NewReviewService(reviewRepo, movieRepo)
+	userSvc := service.NewUserService(userRepo)
+
+	reviewSvc.StartRatingWorker()
 
 	movieH := ginhandler.NewMovieHandler(movieSvc)
 	reviewH := ginhandler.NewReviewHandler(reviewSvc)
+	userH := ginhandler.NewUserHandler(userSvc)
 
 	r := gin.Default()
 
+	r.LoadHTMLGlob("templates/*")
+	r.Static("/static", "./web/static")
+
 	api := r.Group("/api")
 	{
-		api.POST("/movies", movieH.CreateMovie)
-		api.GET("/movies", movieH.GetMovies)
-		api.GET("/movies/:id", movieH.GetMovieByID)
-		api.PUT("/movies/:id", movieH.UpdateMovie)
-		api.DELETE("/movies/:id", movieH.DeleteMovie)
+		authGroup := api.Group("/auth")
+		{
+			authGroup.POST("/register", userH.Register)
+			authGroup.POST("/login", userH.Login)
+		}
 
-		api.POST("/movies/:id/reviews", reviewH.AddReview)
-		api.GET("/movies/:id/reviews", reviewH.GetReviews)
+		public := api.Group("")
+		{
+			public.GET("/movies", movieH.GetMovies)
+			public.GET("/movies/:id", movieH.GetMovieByID)
+			public.GET("/movies/tmdb/popular", movieH.GetPopularFromTMDB)
+			public.GET("/movies/:id/reviews", reviewH.GetReviews)
+		}
 
-		api.GET("/movies/tmdb/popular", movieH.GetPopularFromTMDB)
+		protected := api.Group("")
+		protected.Use(middleware.AuthMiddleware(configs.AppConfig.Auth.JWTSecret))
+		{
+			protected.POST("/movies", movieH.CreateMovie)
+			protected.PUT("/movies/:id", movieH.UpdateMovie)
+			protected.DELETE("/movies/:id", movieH.DeleteMovie)
+
+			protected.POST("/movies/:id/reviews", reviewH.AddReview)
+			protected.PUT("/movies/:id/reviews", reviewH.UpdateReview)
+			protected.DELETE("/movies/:id/reviews", reviewH.DeleteReview)
+			protected.DELETE("/reviews/:review_id", reviewH.AdminDeleteReview)
+
+			protected.GET("/me", userH.Me)
+			protected.PUT("/me", userH.UpdateMe)
+			protected.PUT("/me/password", userH.ChangePassword)
+			protected.DELETE("/me", userH.DeleteMe)
+
+			protected.GET("/users/:id", userH.GetUserByID)
+			protected.DELETE("/users/:id", userH.AdminDeleteUser)
+		}
 	}
+
+	r.GET("/", func(c *gin.Context) {
+		movies := movieSvc.ListMovies()
+		c.HTML(200, "index.tmpl", gin.H{"Movies": movies})
+	})
 
 	r.NoRoute(func(c *gin.Context) {
 		c.File("./web/index.html")
