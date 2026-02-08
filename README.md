@@ -1,15 +1,15 @@
 # Movie Platform
-
+<br>
 Project status: functional prototype — backend REST API + simple frontend SPA.
 This project is a learning / demo movie platform: it stores movie metadata and reviews, integrates with TMDB for movie metadata and trailers, and provides a small React-free frontend (or plain HTML pages) for browsing, searching, viewing trailers and managing user accounts.
 
 Note: the project does not host full movies — only metadata and trailers (YouTube). Do not attempt to stream copyrighted full-length movies.
-
+<br>
 
   *Idea / Overview*
 
 The Movie Platform is a lightweight web application for exploring movies, reading/writing reviews and watching official trailers. It demonstrates a clean Go backend (Gin + layered services + Postgres) integrated with an external provider (TMDB), plus a small client UI that can be used for demos or a course project.
-
+<br>
 
   *Goals:*
 
@@ -20,7 +20,7 @@ Secure endpoints using JWT authentication for protected actions (create, update,
 Integration with TheMovieDB (TMDB) for additional metadata and trailer URLs.
 
 Minimal frontend that shows movies, search, login/register and a movie detail page with a trailer iframe.
-
+<br>
  
   *Functionality*
 
@@ -37,7 +37,7 @@ Get movie reviews (GET /api/movies/:id/reviews)
 Get TMDB movie metadata + trailer (GET /api/tmdb/movies/:id)
 
 Get popular movies from TMDB and (optionally) import to local DB (GET /api/movies/tmdb/popular)
-
+<br>
 
   *Authentication*
 
@@ -54,7 +54,7 @@ Add / update / delete own reviews (POST /api/movies/:id/reviews, PUT /api/movies
 Admin endpoints to delete any review / user (protected by role)
 
 Profile endpoints (GET /api/me, PUT /api/me, PUT /api/me/password, DELETE /api/me)
-
+<br>
 
   *Frontend*
 
@@ -63,7 +63,7 @@ Homepage: grid of movies with search
 Movie detail page: metadata, server JSON, TMDB JSON and YouTube trailer iframe
 
 Simple login/register/profile flows (uses localStorage token)
-
+<br>
 
   *Architecture*
 
@@ -82,7 +82,7 @@ internal/
 model/                        # domain models (Movie, Review, User)
 web/                          # static frontend (index.html, movie.html, /static)
 ```
-
+<br>
   *Layers:*
 
 Handlers receive HTTP requests, validate and call services.
@@ -92,7 +92,7 @@ Services contain business rules and orchestrate calls to repositories or externa
 Repositories (postgres) talk to Postgres and expose simple DB methods.
 
 External clients (tmdb client) encapsulate calls to external APIs.
-
+<br>
 
   *Security:*
 
@@ -103,7 +103,7 @@ Passwords must be hashed at registration (server code should use bcrypt — chec
 TMDB API requests use a TMDB v4 Bearer Read Access Token (not v3 API key) — see configuration.
 
 Config (example)
-
+<br>
 
   *File: configs/config.yaml*
 
@@ -125,7 +125,7 @@ database.url — Postgres connection string (pgxpool compatible).
 tmdb.api_key — must be TMDB v4 Read Access Token (Bearer).
 
 auth.jwt_secret — secret used to sign JWT tokens.
-
+<br>
 
   *Database schema (SQL)*
 
@@ -163,7 +163,7 @@ CREATE TABLE reviews (
 If you use Supabase (as in sample config), make sure the DB user has appropriate privileges.
 
 API Reference (selected endpoints)
-
+<br>
 
   *Some example requests and responses:*
 
@@ -188,7 +188,7 @@ Body: { "username": "bob", "email": "bob@example.com", "password": "secret" }
 POST /api/auth/login
 Body: { "email": "bob@example.com", "password": "secret" }
 Response: { "token": "<JWT>" }
-
+<br>
 
    *Protected endpoints require header: Authorization: Bearer <JWT>*
 
@@ -202,13 +202,13 @@ Response: { "token": "<JWT>" }
 
    *TMDB Read Access Token (v4)*
 
-
+<br>
   *Steps:*
 
 1. Update configs/config.yaml with your Postgres URL, TMDB read token and jwt secret.
 
 2. Create database schema (use the SQL above).
-
+<br>
 
 
   *Start the server from project root:*
@@ -220,7 +220,7 @@ go run ./cmd/server
 ```
 server running on http://localhost:8080
 ```
-
+<br>
 
   *Open the frontend:*
 
@@ -233,7 +233,7 @@ Example: Get trailer JSON directly:
 ```
 curl http://localhost:8080/api/tmdb/movies/550
 ```
-
+<br>
 
   *Using Docker Compose (optional)*
 
@@ -256,7 +256,7 @@ services:
 
 2. Then set configs/config.yaml database.url to postgresql://postgres:password@localhost:5432/moviesdb.
 
-
+<br>
   *Frontend (web)*
 
 *Simple static files are stored in web/:*
@@ -269,7 +269,7 @@ web/static/app.js — SPA JavaScript (if used)
 
 web/static/style.css — CSS
 
-
+<br>
   *If you use the SPA, ensure main.go's router serves web/index.html on unknown routes:*
 
 ```
@@ -279,7 +279,7 @@ r.NoRoute(func(c *gin.Context) {
 r.Static("/static", "./web/static")
 ```
 
-
+<br>
   *Notes & Caveats*
 
 1. TMDB token: use TMDB v4 Read Access Token (Bearer). v3 API keys will return 401 when you attempt to use Authorization: Bearer ....
@@ -291,7 +291,7 @@ r.Static("/static", "./web/static")
 4. Auth: JWT secret in configs/config.yaml must be kept secret for production. Passwords should be hashed (bcrypt) — double-check your registration implementation stores hashed passwords, not plain text.
 
 5. Worker: review service runs a background worker to recalculate movie rating after new reviews. Make sure StartRatingWorker() is called in main.
-
+<br>
 
   *Testing*
 
@@ -300,7 +300,7 @@ r.Static("/static", "./web/static")
 2. Login, save token, then call protected endpoints with Authorization: Bearer <token>.
 
 3. Check server logs (console) for TMDB response errors (status codes, messages) — helpful when troubleshooting trailer fetching.
-
+<br>
 
 *Creators*
 
@@ -309,12 +309,12 @@ Safaryan Artyom
 Faizrakhman Alikhan
 
 Ayazbaev Daniyar
-
+<br>
 
 *License*
 
 NO
-
+<br>
 
   *Possible improvements and extensions:*
 
