@@ -1,4 +1,3 @@
-// internal/postgres/dto/user_dto.go
 package dto
 
 type UserDTO struct {

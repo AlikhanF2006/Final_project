@@ -1,4 +1,3 @@
-// internal/postgres/dto/movie_dto.go
 package dto
 
 type CreateMovieRequest struct {

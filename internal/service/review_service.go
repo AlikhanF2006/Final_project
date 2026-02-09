@@ -1,4 +1,3 @@
-// internal/service/reviewservice.go
 package service
 
 import (

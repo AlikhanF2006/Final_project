@@ -1,4 +1,3 @@
-// internal/postgres/dto/review_dto.go
 package dto
 
 type AddReviewRequest struct {

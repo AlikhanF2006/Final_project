@@ -1,4 +1,3 @@
-// internal/ginhandler/reviewhandler.go
 package ginhandler
 
 import (
