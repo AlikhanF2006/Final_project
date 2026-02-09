@@ -71,24 +71,68 @@ async function apiFetch(path, { method="GET", body=null, auth=false } = {}) {
 
 /* ---------- YouTube embed helper ---------- */
 
-function toYouTubeEmbed(url) {
-    try {
-        const u = new URL(url);
+/* ---------- YouTube embed helper (improved) ---------- */
 
-        // youtu.be/<id>
+function toYouTubeEmbed(data) {
+    // Accepts either:
+    // - a full URL string ("https://www.youtube.com/watch?v=xxx")
+    // - a TMDB object { trailer_url: "...", key: "...", Results: [...] }
+    // - a TMDB videos response { results: [...] }
+    // Returns embed URL string or null.
+
+    // if data is falsy
+    if (!data) return null;
+
+    // If it's an object with trailer_url
+    if (typeof data === "object") {
+        if (data.trailer_url && typeof data.trailer_url === "string") {
+            // fallthrough to parse string below
+            data = data.trailer_url;
+        } else if (data.key && typeof data.key === "string") {
+            return `https://www.youtube.com/embed/${data.key}`;
+        } else if (Array.isArray(data.results) && data.results.length > 0) {
+            // find first YouTube Trailer or Teaser
+            const v = data.results.find(x => (
+                (x.site && x.site.toLowerCase().includes("youtube")) &&
+                (x.type && (x.type.toLowerCase().includes("trailer") || x.type.toLowerCase().includes("teaser")))
+            )) || data.results[0];
+            if (v && v.key) return `https://www.youtube.com/embed/${v.key}`;
+        }
+        // no known shape
+        return null;
+    }
+
+    // At this point `data` should be a string (url or key)
+    if (typeof data !== "string") return null;
+
+    // try to parse as URL
+    try {
+        const u = new URL(data);
+        // short link youtu.be/<id>
         if (u.hostname.includes("youtu.be")) {
             const id = u.pathname.replace("/", "");
             return id ? `https://www.youtube.com/embed/${id}` : null;
         }
-
-        // youtube.com/watch?v=<id>
-        if (u.hostname.includes("youtube.com")) {
+        // regular youtube link youtube.com/watch?v=<id>
+        if (u.hostname.includes("youtube.com") || u.hostname.includes("www.youtube.com")) {
             const id = u.searchParams.get("v");
             return id ? `https://www.youtube.com/embed/${id}` : null;
         }
-    } catch {}
+        // sometimes TMDB might give an embed path already, return as-is if it looks like embed
+        if (u.hostname.includes("youtube-nocookie.com") || u.pathname.includes("/embed/")) {
+            return data;
+        }
+    } catch (e) {
+        // not a URL — maybe plain id
+        const plain = data.trim();
+        if (plain.length >= 6 && plain.length <= 20 && /^[A-Za-z0-9_\-]+$/.test(plain)) {
+            return `https://www.youtube.com/embed/${plain}`;
+        }
+        return null;
+    }
     return null;
 }
+
 
 /* ---------- Auth ---------- */
 
@@ -212,26 +256,55 @@ function renderMovieView(movie, trailerData=null) {
     $("mvTMDB").textContent = `TMDB: ${movie.tmdb_id || 0}`;
     $("mvDesc").textContent = movie.description || "No description.";
 
-    // Trailer
+    // Trailer (robust handling)
     const trailerBox = $("trailerBox");
     const trailerLink = $("trailerLink");
     const trailerFrame = $("trailerFrame");
 
-    if (trailerData && trailerData.trailer_url) {
-        trailerLink.href = trailerData.trailer_url;
+    // Clear previous src to stop playback when switching movies
+    trailerFrame.src = "";
 
-        const embed = toYouTubeEmbed(trailerData.trailer_url);
-        if (embed) {
-            trailerFrame.src = embed;
-            trailerBox.classList.remove("hidden");
-        } else {
-            trailerFrame.src = "";
-            trailerBox.classList.remove("hidden");
+    // Compute embed URL using the helper (supports multiple TMDB shapes)
+    let embedUrl = null;
+    let publicUrl = null;
+
+    if (trailerData) {
+        // trailerData might be: { trailer_url: "...", key: "..." } or { results: [...] } or plain string
+        if (typeof trailerData === "string") {
+            publicUrl = trailerData;
+            embedUrl = toYouTubeEmbed(trailerData);
+        } else if (typeof trailerData === "object") {
+            // If it has a top-level trailer_url, use that as public url
+            if (trailerData.trailer_url) publicUrl = trailerData.trailer_url;
+            // If it has key property
+            if (trailerData.key) embedUrl = toYouTubeEmbed(trailerData.key);
+            // If it has results (TMDB videos response)
+            if (!embedUrl && Array.isArray(trailerData.results)) embedUrl = toYouTubeEmbed(trailerData);
+            // fallback: try full object (some endpoints return { trailer_url: .. })
+            if (!embedUrl && publicUrl) embedUrl = toYouTubeEmbed(publicUrl);
         }
+    }
+
+    // If we don't have embedUrl but have a publicUrl, still set the link (user can open manually)
+    if (publicUrl) {
+        trailerLink.href = publicUrl;
+        trailerLink.classList.remove("hidden");
     } else {
-        trailerFrame.src = "";
+        trailerLink.href = "#";
+        trailerLink.classList.add("hidden");
+    }
+
+    if (embedUrl) {
+        // add autoplay=0 by default; if you want autoplay set to 1, append ?autoplay=1 (careful with UX)
+        // ensure we don't duplicate querystring
+        const sep = embedUrl.includes("?") ? "&" : "?";
+        trailerFrame.src = embedUrl + sep + "rel=0"; // rel=0 to reduce related videos
+        trailerBox.classList.remove("hidden");
+    } else {
+        trailerFrame.removeAttribute("src");
         trailerBox.classList.add("hidden");
     }
+
 
     renderMovieAdminActions(movie);
 }
