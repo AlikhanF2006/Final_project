@@ -497,15 +497,24 @@ function updateComposerVisibility() {
 
 async function addReview() {
     if (!state.selectedMovie) return;
+
     const score = parseInt($("revScore").value, 10);
-    const text = $("revText").value || "";
+    const text = ($("revText").value || "").trim();
+
+    // basic validation before sending
+    if (Number.isNaN(score) || score < 1 || score > 10) {
+        toast("Score must be between 1 and 10");
+        return;
+    }
 
     try {
         await apiFetch(API.addReview(state.selectedMovie.id), {
-            method:"POST",
-            body:{ score, text },
-            auth:true
+            method: "POST",
+            // send BOTH keys so backend can bind either json:"text" or json:"comment"
+            body: { score, text, comment: text },
+            auth: true
         });
+
         toast("Review added ✅");
         $("revText").value = "";
         await loadReviews(state.selectedMovie.id);
@@ -554,7 +563,7 @@ async function openProfile() {
     try {
         const me = await apiFetch(API.me, { auth:true });
         state.me = me;
-        $("meSummary").textContent = `${me.username} <${me.email}> (id:${me.id})`;
+        $("meSummary").textContent = `${me.username} <${me.email}>`;
         $("meRole").textContent = me.role || "user";
         $("meUsername").value = me.username || "";
         $("meEmail").value = me.email || "";
