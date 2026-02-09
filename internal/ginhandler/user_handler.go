@@ -1,4 +1,3 @@
-// internal/ginhandler/userhandler.go
 package ginhandler
 
 import (

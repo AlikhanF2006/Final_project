@@ -1,4 +1,3 @@
-// internal/postgres/review_postgres.go
 package postgres
 
 import (
