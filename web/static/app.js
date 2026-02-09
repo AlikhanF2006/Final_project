@@ -243,6 +243,8 @@ function renderMovieAdminActions(movie) {
     // Keep edit/delete visible only if logged in (your backend should also enforce admin-only)
     if (!state.me) return;
 
+    if (!state.me || state.me.role !== "admin") return;
+
     const btnEdit = document.createElement("button");
     btnEdit.className = "btn btn-ghost";
     btnEdit.textContent = "Quick Edit";
@@ -321,7 +323,6 @@ async function loadReviews(movieId) {
     try {
         state.selectedReviews = await apiFetch(API.reviews(movieId));
     } catch (e) {
-        // If backend ever returns 404, treat as empty list (but we fixed backend handler too)
         state.selectedReviews = [];
     }
 
@@ -359,7 +360,7 @@ async function ensureUserLabel(userId) {
 
     try {
         const u = await apiFetch(API.userById(userId), { auth:true });
-        const label = u.username ? `${u.username} (id:${u.id})` : `user:${userId}`;
+        const label = u.username ? u.username : "user";
         state.userCache.set(userId, label);
         return label;
     } catch {
@@ -425,20 +426,19 @@ function updateComposerVisibility() {
 async function addReview() {
     if (!state.selectedMovie) return;
 
-    const score = parseInt($("revScore").value, 10);
+    const raw = ($("revScore").value || "").trim();
+    const score = Number(raw);
     const text = ($("revText").value || "").trim();
 
-    // basic validation before sending
-    if (Number.isNaN(score) || score < 1 || score > 10) {
-        toast("Score must be between 1 and 10");
+    if (!Number.isInteger(score) || score < 1 || score > 10) {
+        toast("Score must be an integer 1–10");
         return;
     }
 
     try {
         await apiFetch(API.addReview(state.selectedMovie.id), {
             method: "POST",
-            // send BOTH keys so backend can bind either json:"text" or json:"comment"
-            body: { score, text, comment: text },
+            body: { score, text },   // valid JSON always
             auth: true
         });
 
@@ -450,6 +450,7 @@ async function addReview() {
         toast(`Add review failed: ${e.message}`);
     }
 }
+
 
 async function updateMyScoreOnly() {
     if (!state.selectedMovie) return;
